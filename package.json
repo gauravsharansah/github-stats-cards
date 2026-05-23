@@ -1,0 +1,10 @@
+{
+  "name": "github-stats-proxy",
+  "version": "1.0.0",
+  "description": "GitHub stats SVG proxy for Vercel",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  }
+}
