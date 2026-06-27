@@ -1,5 +1,5 @@
 {
-  "name": "github-stats-proxy",
+  "name": "github-stats-cards",
   "version": "1.0.0",
   "description": "GitHub stats SVG proxy for Vercel",
   "private": true,
