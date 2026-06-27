@@ -353,6 +353,131 @@ function streakCard(d) {
     currentStreak <= 29  ? "#ff6b6b" :   // bright red
                            "#ff4444";    // intense red
 
+  // Flame tip color — the hottest part (bright core)
+  const flameTip =
+    currentStreak === 0  ? "#555" :
+    currentStreak <= 2   ? "#fff7a0" :   // pale yellow-white
+    currentStreak <= 6   ? "#ffe066" :   // warm yellow
+    currentStreak <= 13  ? "#ffb347" :   // amber
+    currentStreak <= 29  ? "#ff7043" :   // deep orange
+                           "#ff1744";    // intense red-white core
+
+  // Flame glow spread color
+  const flameGlow =
+    currentStreak === 0  ? "transparent" :
+    currentStreak <= 2   ? "#e3b34144" :
+    currentStreak <= 6   ? "#f0883e55" :
+    currentStreak <= 13  ? "#f8514966" :
+    currentStreak <= 29  ? "#e0443a77" :
+                           "#c0392b99";
+
+  // Flame sits on top of the ring: center it at (cx, cy - r)
+  // We draw it as a group of SVG paths scaled to ~26×34px, centered on (cx, cy-r)
+  const fx = cx;       // flame center x
+  const fy = cy - r;   // flame center y (sits on ring top)
+  // Flame paths are defined in a local coord system: center=(0,0), total height ~34, width ~26
+  // Three layered flame shapes: outer body, mid body, inner core
+  const flameActive = currentStreak > 0;
+
+  const flameSVG = flameActive ? `
+  <!-- Dynamic SVG Flame on ring top -->
+  <g transform="translate(${fx}, ${fy})">
+    <defs>
+      <!-- Outer flame gradient: base color → tip color -->
+      <radialGradient id="flameOuter" cx="50%" cy="80%" r="60%" fx="50%" fy="90%">
+        <stop offset="0%"   stop-color="${streakColor2}" stop-opacity="1"/>
+        <stop offset="60%"  stop-color="${streakColor}"  stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="${streakColor}"  stop-opacity="0"/>
+      </radialGradient>
+      <!-- Mid flame gradient -->
+      <radialGradient id="flameMid" cx="50%" cy="75%" r="55%" fx="50%" fy="85%">
+        <stop offset="0%"   stop-color="${flameTip}"     stop-opacity="1"/>
+        <stop offset="50%"  stop-color="${streakColor2}" stop-opacity="0.95"/>
+        <stop offset="100%" stop-color="${streakColor}"  stop-opacity="0"/>
+      </radialGradient>
+      <!-- Inner core gradient -->
+      <radialGradient id="flameCore" cx="50%" cy="70%" r="45%" fx="50%" fy="80%">
+        <stop offset="0%"   stop-color="#ffffff"         stop-opacity="0.9"/>
+        <stop offset="40%"  stop-color="${flameTip}"     stop-opacity="0.85"/>
+        <stop offset="100%" stop-color="${streakColor2}" stop-opacity="0"/>
+      </radialGradient>
+      <!-- Glow blur filter -->
+      <filter id="flameGlowFilter" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="flameBloom" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="6" result="bloom"/>
+      </filter>
+    </defs>
+
+    <!-- Bloom halo behind flame -->
+    <ellipse cx="0" cy="4" rx="10" ry="6" fill="${streakColor2}" opacity="0.18" filter="url(#flameBloom)"/>
+
+    <!-- Outer flame body -->
+    <path d="M0,-32 C6,-28 13,-20 12,-10 C11,-2 7,4 0,8 C-7,4 -11,-2 -12,-10 C-13,-20 -6,-28 0,-32 Z
+             M-4,-18 C-8,-10 -9,-4 -6,2 M4,-18 C8,-10 9,-4 6,2"
+      fill="url(#flameOuter)" filter="url(#flameGlowFilter)">
+      <animateTransform attributeName="transform" type="scale"
+        values="1,1; 1.04,0.97; 0.97,1.03; 1.02,0.98; 1,1"
+        dur="1.8s" repeatCount="indefinite" additive="sum"/>
+      <animate attributeName="d"
+        values="M0,-32 C6,-28 13,-20 12,-10 C11,-2 7,4 0,8 C-7,4 -11,-2 -12,-10 C-13,-20 -6,-28 0,-32 Z;
+                M0,-34 C7,-29 14,-19 11,-9 C10,-1 6,5 0,9 C-6,5 -10,-1 -11,-9 C-14,-19 -7,-29 0,-34 Z;
+                M0,-30 C5,-27 12,-21 13,-11 C12,-3 8,3 0,7 C-8,3 -12,-3 -13,-11 C-12,-21 -5,-27 0,-30 Z;
+                M0,-33 C8,-28 13,-18 10,-8 C9,-1 6,5 0,8 C-6,5 -9,-1 -10,-8 C-13,-18 -8,-28 0,-33 Z;
+                M0,-32 C6,-28 13,-20 12,-10 C11,-2 7,4 0,8 C-7,4 -11,-2 -12,-10 C-13,-20 -6,-28 0,-32 Z"
+        dur="1.8s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- Mid flame body -->
+    <path d="M0,-24 C4,-20 9,-14 8,-6 C7,0 4,5 0,7 C-4,5 -7,0 -8,-6 C-9,-14 -4,-20 0,-24 Z"
+      fill="url(#flameMid)" filter="url(#flameGlowFilter)">
+      <animate attributeName="d"
+        values="M0,-24 C4,-20 9,-14 8,-6 C7,0 4,5 0,7 C-4,5 -7,0 -8,-6 C-9,-14 -4,-20 0,-24 Z;
+                M0,-26 C5,-21 10,-13 7,-5 C6,1 3,6 0,8 C-3,6 -6,1 -7,-5 C-10,-13 -5,-21 0,-26 Z;
+                M0,-22 C3,-19 8,-15 9,-7 C8,1 5,4 0,6 C-5,4 -8,1 -9,-7 C-8,-15 -3,-19 0,-22 Z;
+                M0,-25 C6,-20 9,-12 6,-4 C5,2 3,6 0,7 C-3,6 -5,2 -6,-4 C-9,-12 -6,-20 0,-25 Z;
+                M0,-24 C4,-20 9,-14 8,-6 C7,0 4,5 0,7 C-4,5 -7,0 -8,-6 C-9,-14 -4,-20 0,-24 Z"
+        dur="1.4s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="skewX"
+        values="0; 2; -2; 1.5; -1; 0"
+        dur="1.4s" repeatCount="indefinite" additive="sum"/>
+    </path>
+
+    <!-- Inner hot core -->
+    <path d="M0,-16 C3,-13 6,-8 5,-3 C4,1 2,4 0,5 C-2,4 -4,1 -5,-3 C-6,-8 -3,-13 0,-16 Z"
+      fill="url(#flameCore)">
+      <animate attributeName="d"
+        values="M0,-16 C3,-13 6,-8 5,-3 C4,1 2,4 0,5 C-2,4 -4,1 -5,-3 C-6,-8 -3,-13 0,-16 Z;
+                M0,-18 C4,-14 6,-7 4,-2 C3,2 1,5 0,6 C-1,5 -3,2 -4,-2 C-6,-7 -4,-14 0,-18 Z;
+                M0,-14 C2,-12 5,-9 6,-4 C5,0 3,3 0,4 C-3,3 -5,0 -6,-4 C-5,-9 -2,-12 0,-14 Z;
+                M0,-17 C3,-12 5,-6 3,-1 C2,3 1,5 0,6 C-1,5 -2,3 -3,-1 C-5,-6 -3,-12 0,-17 Z;
+                M0,-16 C3,-13 6,-8 5,-3 C4,1 2,4 0,5 C-2,4 -4,1 -5,-3 C-6,-8 -3,-13 0,-16 Z"
+        dur="1.1s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- Tiny ember sparks -->
+    <circle cx="-5" cy="-30" r="1.2" fill="${flameTip}" opacity="0.7">
+      <animate attributeName="cy" values="-30;-40;-30" dur="1.6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.7;0;0.7" dur="1.6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="4" cy="-28" r="1" fill="${streakColor2}" opacity="0.6">
+      <animate attributeName="cy" values="-28;-39;-28" dur="1.2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.6;0;0.6" dur="1.2s" repeatCount="indefinite"/>
+      <animate attributeName="cx" values="4;6;4" dur="1.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="0" cy="-34" r="0.9" fill="${flameTip}" opacity="0.5">
+      <animate attributeName="cy" values="-34;-44;-34" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/>
+    </circle>
+  </g>` : `
+  <!-- Inactive flame placeholder (dim) -->
+  <g transform="translate(${fx}, ${fy})">
+    <path d="M0,-20 C3,-17 7,-12 6,-6 C5,0 3,4 0,6 C-3,4 -5,0 -6,-6 C-7,-12 -3,-17 0,-20 Z"
+      fill="${C.dim}" opacity="0.4"/>
+  </g>`;
+
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="kbg" x1="0" y1="0" x2="1" y2="1">
@@ -405,9 +530,10 @@ function streakCard(d) {
     stroke-linecap="round"
     transform="rotate(-90 ${cx} ${cy})"
     filter="url(#rglow)"/>
-  <!-- Flame emoji background glow -->
-  <circle cx="${cx}" cy="${cy - r - 2}" r="8" fill="${C.bg}" opacity="0.8"/>
-  <text x="${cx}" y="${cy - r + 5}" font-size="13" text-anchor="middle">🔥</text>
+
+  <!-- Animated SVG flame sitting on top of ring -->
+  ${flameSVG}
+
   <!-- Streak number -->
   <text x="${cx}" y="${cy + 8}" font-size="28" font-weight="800" fill="${streakColor}"
     text-anchor="middle" font-family="ui-monospace,SFMono-Regular,monospace"
@@ -436,13 +562,152 @@ function errorSVG(msg) {
 </svg>`;
 }
 
+// ─── Dashboard HTML ───────────────────────────────────────────────────────────
+function dashboardHTML(stats, langs, streak, username) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>${esc(username)}'s GitHub Stats</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: ui-monospace, SFMono-Regular, monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 24px 64px;
+      gap: 0;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 48px;
+      text-align: center;
+      flex-direction: column;
+    }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 2px solid #30363d;
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #58a6ff, #39d353);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      font-size: 12px;
+      color: #7d8590;
+      margin-top: 4px;
+    }
+
+    .grid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 14px;
+      overflow: hidden;
+      width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      border-color: #30363d;
+      box-shadow: 0 0 24px rgba(88, 166, 255, 0.07);
+    }
+
+    .card svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .card-label {
+      font-size: 10px;
+      color: #484f58;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 16px 0;
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <img class="avatar" src="https://github.com/${esc(username)}.png" alt="${esc(username)}" onerror="this.style.display='none'"/>
+    <div>
+      <h1>${esc(username)}'s GitHub Stats</h1>
+      <p>Live stats · updates every hour</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-label">Overview</div>
+      ${stats}
+    </div>
+    <div class="card">
+      <div class="card-label">Languages</div>
+      ${langs}
+    </div>
+    <div class="card">
+      <div class="card-label">Streak</div>
+      ${streak}
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
 // ─── Handler ──────────────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
+
+  const type = (req.query.type || "").toLowerCase();
+
+  // No type param → serve the HTML dashboard with all three cards inline
+  if (!type) {
+    try {
+      const data = await fetchData();
+      const stats  = statsCard(data);
+      const langs  = langsCard(data);
+      const streak = streakCard(data);
+      res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=7200");
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res.status(200).send(dashboardHTML(stats, langs, streak, data.username));
+    } catch (err) {
+      console.error("Dashboard error:", err);
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res.status(500).send(`<pre style="color:red;background:#0d1117;padding:2rem">${esc(err.message)}</pre>`);
+    }
+  }
+
+  // type param present → return the individual SVG as before
   res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=7200");
   res.setHeader("Content-Type", "image/svg+xml");
-
-  const type = (req.query.type || "stats").toLowerCase();
 
   try {
     const data = await fetchData();
