@@ -2,9 +2,9 @@
 
 > Beautiful, self-hosted GitHub stats cards served as SVGs — powered by Vercel + GitHub GraphQL API.
 
-![stats](https://github-stats-proxy.vercel.app/api?type=stats)
-![langs](https://github-stats-proxy.vercel.app/api?type=langs)
-![streak](https://github-stats-proxy.vercel.app/api?type=streak)
+![stats](https://githubstatscards.vercel.app/api?type=stats)
+![langs](https://githubstatscards.vercel.app/api?type=langs)
+![streak](https://githubstatscards.vercel.app/api?type=streak)
 
 ---
 
