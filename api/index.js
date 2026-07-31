@@ -238,14 +238,17 @@ function statsCard(d) {
       <feGaussianBlur stdDeviation="2" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <clipPath id="scardclip">
+      <rect width="${W}" height="${H}" rx="14"/>
+    </clipPath>
   </defs>
 
   <!-- Background -->
   <rect width="${W}" height="${H}" rx="14" fill="url(#sbg)"/>
+  <!-- Top accent line (clipped to card shape so it can't overshoot the rounded corners) -->
+  <rect x="0" y="0" width="${W}" height="3" fill="url(#stitle)" opacity="0.8" clip-path="url(#scardclip)"/>
   <!-- Border -->
   <rect width="${W}" height="${H}" rx="14" fill="none" stroke="${C.border}" stroke-width="1"/>
-  <!-- Top accent line -->
-  <rect x="0" y="0" width="${W}" height="3" rx="2" fill="url(#stitle)" opacity="0.8"/>
 
   <!-- Title -->
   <text x="22" y="40" font-size="17" font-weight="700" fill="url(#stitle)"
@@ -308,11 +311,15 @@ function langsCard(d) {
     <clipPath id="barclip">
       <rect x="18" y="${barY}" width="${barW}" height="${barH}" rx="4.5"/>
     </clipPath>
+    <clipPath id="lcardclip">
+      <rect width="${W}" height="${H}" rx="14"/>
+    </clipPath>
   </defs>
 
   <rect width="${W}" height="${H}" rx="14" fill="url(#lbg)"/>
+  <!-- Top accent line (clipped to card shape so it can't overshoot the rounded corners) -->
+  <rect x="0" y="0" width="${W}" height="3" fill="url(#ltitle)" opacity="0.8" clip-path="url(#lcardclip)"/>
   <rect width="${W}" height="${H}" rx="14" fill="none" stroke="${C.border}" stroke-width="1"/>
-  <rect x="0" y="0" width="${W}" height="3" rx="2" fill="url(#ltitle)" opacity="0.8"/>
 
   <text x="18" y="38" font-size="16" font-weight="700" fill="url(#ltitle)"
     font-family="ui-monospace,SFMono-Regular,monospace">Most Used Languages</text>
@@ -496,11 +503,15 @@ function streakCard(d) {
       <feGaussianBlur stdDeviation="3" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <clipPath id="kcardclip">
+      <rect width="${W}" height="${H}" rx="14"/>
+    </clipPath>
   </defs>
 
   <rect width="${W}" height="${H}" rx="14" fill="url(#kbg)"/>
+  <!-- Top accent line (clipped to card shape so it can't overshoot the rounded corners) -->
+  <rect x="0" y="0" width="${W}" height="3" fill="url(#ktitle)" opacity="0.8" clip-path="url(#kcardclip)"/>
   <rect width="${W}" height="${H}" rx="14" fill="none" stroke="${C.border}" stroke-width="1"/>
-  <rect x="0" y="0" width="${W}" height="3" rx="2" fill="url(#ktitle)" opacity="0.8"/>
 
   <!-- Title -->
   <text x="22" y="38" font-size="15" font-weight="700" fill="url(#ktitle)"
@@ -646,12 +657,29 @@ function dashboardHTML(stats, langs, streak, username) {
     }
 
     .card-label {
-      font-size: 10px;
-      color: #484f58;
-      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
       text-transform: uppercase;
-      padding: 10px 16px 0;
+      padding: 18px 20px 12px;
     }
+
+    .card-label::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 6px currentColor;
+      flex-shrink: 0;
+    }
+
+    .card-label--stats  { color: #79c0ff; }
+    .card-label--langs  { color: #d2a8ff; }
+    .card-label--streak { color: #ffa657; }
 
   </style>
 </head>
@@ -666,15 +694,15 @@ function dashboardHTML(stats, langs, streak, username) {
 
   <div class="grid">
     <div class="card">
-      <div class="card-label">Overview</div>
+      <div class="card-label card-label--stats">Overview</div>
       ${stats}
     </div>
     <div class="card">
-      <div class="card-label">Languages</div>
+      <div class="card-label card-label--langs">Languages</div>
       ${langs}
     </div>
     <div class="card">
-      <div class="card-label">Streak</div>
+      <div class="card-label card-label--streak">Streak</div>
       ${streak}
     </div>
   </div>
